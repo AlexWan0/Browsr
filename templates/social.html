@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Browsr</title>
+	<link rel="stylesheet" href="https://unpkg.com/chota@latest">
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+	<style type="text/css">
+		.brand{
+			margin-top: 50px;
+			margin-left: 50px;
+		}
+		#social_type{
+			width:200px;
+			height:40px;
+			margin-top:30px;
+			margin-left:70px;
+		}
+		body{
+			background-color:#fafafa;
+			width:100%;
+		}
+		.tweet_content{
+			margin:60px;
+			margin-top:40px;
+		}
+		.tweet_card{
+			padding:20px;
+			margin:10px;
+			width:100%;
+		}
+		.un_text{
+			margin-bottom:5px;
+		}
+		.right_panel{
+			box-shadow: -4px 0px 4px 0px rgba(0,0,0,0.20);
+			background-color:white;
+			right:0;
+		}
+		.right_content{
+			margin-left:40px;
+			margin-top:40px;
+			height:100vh;
+		}
+		.right_content p{
+			color: #545454;
+		}
+		.submit_button{
+			margin-top:20px;
+			width:120px;
+		}
+		.time_cont{
+			bottom:100px;
+		}
+		.time_cont label{
+			margin-right:15px;
+		}
+		.but_cont{
+			bottom:30px;
+		}
+		.next_cont{
+			width: 100%;
+			margin-top: 20px;
+		}
+		.nav{
+			margin-bottom: 50px;
+		}
+		.custom_row{
+			margin-top:30px;
+			margin-left:60px;
+		}
+		.custom_row p{
+			margin-top:5px;
+		}
+		.loading_text{
+			margin-left:10px;
+		}
+		.not-active {
+			pointer-events: none;
+			cursor: default;
+			text-decoration: none;
+			color: black;
+		}
+		@media only screen and (max-width: 600px){
+			.right_panel{
+				display:none;
+			}
+		}
+	</style>
+	<script type="text/javascript">
+		var test_data = [{'name': 'test1', 'text': 'The standard API rate limits described in this table refer to GET (read) endpoints. Note that endpoints not listed in the chart default to 15 requests per allotted user. All request windows are 15 minutes in length.  These rate limits apply to the standard API endpoints only; premium endpoints have different limits based on subscription tiers.'}, {'name': 'test1', 'text': 'The standard API rate limits described in this table refer to GET (read) endpoints. Note that endpoints not listed in the chart default to 15 requests per allotted user. All request windows are 15 minutes in length.  These rate limits apply to the standard API endpoints only; premium endpoints have different limits based on subscription tiers.'}, {'name': 'test1', 'text': 'The standard API rate limits described in this table refer to GET (read) endpoints. Note that endpoints not listed in the chart default to 15 requests per allotted user. All request windows are 15 minutes in length.  These rate limits apply to the standard API endpoints only; premium endpoints have different limits based on subscription tiers.'}, {'name': 'test1', 'text': 'The standard API rate limits described in this table refer to GET (read) endpoints. Note that endpoints not listed in the chart default to 15 requests per allotted user. All request windows are 15 minutes in length.  These rate limits apply to the standard API endpoints only; premium endpoints have different limits based on subscription tiers.'}, {'name': 'test1', 'text': 'The standard API rate limits described in this table refer to GET (read) endpoints. Note that endpoints not listed in the chart default to 15 requests per allotted user. All request windows are 15 minutes in length.  These rate limits apply to the standard API endpoints only; premium endpoints have different limits based on subscription tiers.'}];
+
+		var all_tweets = [];
+
+		var keywords = [];
+		var key_i = 0;
+		$(function(){
+			$.urlParam = function(name){
+				var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+				if (results==null) {
+					return null;
+				}
+				return decodeURI(results[1]) || 0;
+			}
+			function fixCase(text){
+				text = text.toLowerCase();
+				text = text.split(' ').map(x=>x.charAt(0).toUpperCase() + x.slice(1)).join(' ');
+				return text;	
+			}
+			$.ajax({
+				type: "GET",
+				url: "/tweets",
+				data: {'query':$.urlParam('q'), 'page': $.urlParam('p'), 'maxpolar': $.urlParam('maxpolar'), 'source': $.urlParam('source')},
+				success:function(data){
+					console.log(data);
+					$('.loading_text').hide();
+
+					all_tweets = data['tweets'];
+
+					all_tweets.forEach(function(tweet_data, i){
+						console.log(tweet_data);
+						var text = tweet_data['text'];
+						//text = text.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
+						$('.tweet_content').append("<div style='box-shadow: 0 1px 3px rgba(255, 100, 100,"+Math.abs(tweet_data['polarity'])/1.2+");' class='card tweet_card'><p class='un_text'><b>@"+tweet_data['name']+"</b></p><p>"+text+" <a class='get_keywords' style='cursor:pointer;' data-idx='"+i+"'>+</a></p></div>");
+					});
+
+					if(data['has_next']){
+						console.log("<div class='row'><a class='col' href='/social?p="+($.urlParam('p') + 1)+"&q="+$.urlParam('q')+"'>Next page</a>");
+						$('.tweet_content').append("<div class='row next_cont text-center'><a class='col' href='/social?p="+(parseInt($.urlParam('p')) + 1)+"&q="+$.urlParam('q')+"'>Next page</a></div>");
+					}
+
+					$('.get_keywords').click(function(){
+						$('.get_keywords').addClass('not-active');
+						var i = $(this).data('idx');
+						var tweet_data = all_tweets[i];
+						console.log(tweet_data);
+						$.ajax({
+							type: "POST",
+							url: '/keywords',
+							data: {'text': tweet_data['text']},
+							success: function(data){
+								console.log(data);
+
+								$('.get_keywords').removeClass('not-active');
+
+								data.forEach(function(ele){
+									keywords.push(fixCase(ele));
+									$('.right_content').append('<p class="key_'+key_i+'">'+fixCase(ele)+" <a class='remove_keyword' style='cursor:pointer;' data-idx='"+key_i+"'>-</a></p>");
+									key_i++;
+
+									$('.remove_keyword').click(function(){
+										var idx = $(this).data('idx');
+										keywords[idx] = "";
+
+										$('.key_'+idx).remove();
+
+									});
+								});
+							},
+							error: function(){
+								$('.get_keywords').removeClass('not-active');
+							}
+						});
+					});
+				}
+			});
+			$(document).on("keypress", function(e) {
+				if (e.which == 17){
+					var text = '';
+					if(window.getSelection){
+						text = window.getSelection().toString();
+					}else if(document.selection && document.selection.type != "Control"){
+						text = document.selection.createRange().text;
+					}
+					if(text != ''){
+						keywords.push(fixCase(text));
+						$('.right_content').append('<p class="key_'+key_i+'">'+fixCase(text)+" <a class='remove_keyword' style='cursor:pointer;' data-idx='"+key_i+"'>-</a></p>");
+						key_i++;
+
+						$('.remove_keyword').click(function(){
+							var idx = $(this).data('idx');
+							keywords[idx] = "";
+
+							$('.key_'+idx).remove();
+
+						});
+					}
+				}
+			});
+			$('.submit_button').click(function(){
+				var keywords_nonempty = [];
+				keywords.forEach(function(kw){
+					if(kw != "")
+						keywords_nonempty.push(kw);
+				});
+				document.location.href = '/research?keywords=' + keywords_nonempty.join() + '&time=' + $('.time_input').val();
+			});
+			$('#social_type').change(function(){
+				console.log($(this).val());
+				if($(this).val() == 'custom'){
+					$('.custom_row').show();
+				}else{
+					$('.custom_row').hide();
+				}
+			});
+			$('#custom_submit').click(function(){
+				var max_polarity = $('#max_polar').val();
+				var source = $('#custom_source').val();
+
+				document.location.href = '/social?p=' + $.urlParam('p') + '&q=' + $.urlParam('q') + '&maxpolar=' + max_polarity + '&source=' + source;
+			});
+			$('.time_input').on('input', function(){
+				if($('.time_input').val().length > 0 && parseInt($('.time_input').val()) > 0){
+					$('.submit_button').prop('disabled', false);
+				}else{
+					$('.submit_button').prop('disabled', true);
+				}
+			});
+		});
+	</script>
+</head>
+<body class='row'>
+	<div class='left_panel col'>
+		<nav class='nav'>
+			<div class='nav-left'>
+				<a class='brand' href='/'><img src="{{ url_for('static', filename='browsr_logo_hori.png') }}" class='top_logo' style='max-height:10vh;'></a>
+			</div>
+		</nav>
+		<select id="social_type">
+			<option value="twitter">Twitter</option>
+			<option value="custom" id='custom'>Custom</option>
+		</select>
+		<div class='custom_row row' style='display:none;'>
+			<p class='col-2'>Custom Setting:</p>
+			<select id="custom_source" class='col-3'>
+				<option value="twitter">Twitter</option>
+			</select>
+			<input type='number' class='col-3' id='max_polar' placeholder='Max Polarity'>
+			<input type='submit' class='col-3' id='custom_submit'>
+		</div>
+		<div class='tweet_content row'>
+			<p class='loading_text'>Loading...</p>
+		</div>
+	</div>
+	<div class='col-3'>
+	</div>
+	<div class='right_panel col-3 is-fixed'>
+		<div class='right_content'>
+			<h4>Research</h4>
+		</div>
+		<div class='is-fixed time_cont is-center col-3'>
+			<label>Time: </label>
+			<input type='number' class='time_input' style='width:80px;'>
+		</div>
+		<div class='is-fixed is-center but_cont col-3'>
+			<input type='submit' class='submit_button' disabled>
+		</div>
+	</div>
+</body>
+</html>

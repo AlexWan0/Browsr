@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Browsr</title>
+	<link rel="stylesheet" href="https://unpkg.com/chota@latest">
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+	<style type="text/css">
+		.logo_row p{
+			font-size:40px;
+		}
+		body{
+			background-color:#fafafa;
+			width:100%;
+		}
+		.logo_row{
+			margin-top:12vh;
+		}
+		.trending_links{
+			padding-left:100px;
+			padding-right:100px;
+			margin-bottom:50px;
+		}
+		.input_row{
+			padding-left:100px;
+			padding-right:100px;
+		}
+		.logo_image{
+			max-width:20%;
+		}
+	</style>
+	<script type="text/javascript">
+		$(function(){
+			$('.main_form').submit(function(){
+				window.location.href = '/social?p=1&q=' + $('#query_input').val();
+				return false;
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class='row logo_row is-center' style="width:100%">
+		<img src="{{ url_for('static', filename='browsr_logo.png') }}" class='logo_image'>
+	</div>
+	<div class='row is-center' style="width:100%;">
+		<p>Trending</p>
+	</div>
+	<div class='row is-center text-center trending_links' style="width:100%;">
+		<a class='col-2' href='/social?p=1&q=Jets'>Jets</a>
+		<a class='col-2' href='/social?p=1&q=Jamal%20Adams'>Jamal Adams</a>
+		<a class='col-2' href='/social?p=1&q=SNKRS'>SNKRS</a>
+		<a class='col-2' href='/social?p=1&q=%23LFGM'>#LFGM</a>
+		<a class='col-2' href='/social?p=1&q=Knicks'>Knicks</a>
+	</div>
+	<form class='row is-center input_row main_form' style="width:100%;">
+		<input class='col-3' id='query_input' placeholder='Search Term'>
+	</form>
+</body>
+</html>
